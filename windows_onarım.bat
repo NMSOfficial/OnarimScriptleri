@@ -37,8 +37,29 @@ echo Windows Update bileşenleri sıfırlama işlemi tamamlandı.
 
 :: Disk kontrolü (CHKDSK) çalıştırma
 echo Disk kontrolü (CHKDSK) yapılıyor...
-chkdsk C: /f /r
-echo CHKDSK taraması tamamlandı.
+chkdsk C: > chkdsk_result.txt
+find /i "Windows has scanned the file system and found no problems" chkdsk_result.txt > nul
+if %errorlevel%==0 (
+    echo CHKDSK taraması tamamlandı, herhangi bir sorun bulunamadı.
+) else (
+    echo CHKDSK sorunlar tespit etti. Onarmak ister misiniz? (E/H)
+    set /p user_input=
+    if /i "%user_input%"=="E" (
+        echo CHKDSK onarım işlemi başlatılıyor. Bilgisayar yeniden başlatıldığında bu işlem tamamlanacaktır.
+        echo Y|chkdsk C: /f /r
+        echo Bilgisayarı yeniden başlatmak istiyor musunuz? (E/H)
+        set /p restart_input=
+        if /i "%restart_input%"=="E" (
+            echo Bilgisayar yeniden başlatılıyor...
+            shutdown /r /t 0
+        ) else (
+            echo Bilgisayarı daha sonra yeniden başlatabilirsiniz. Onarım işlemi yeniden başlatıldığında tamamlanacaktır.
+        )
+    ) else (
+        echo CHKDSK onarım işlemi iptal edildi.
+    )
+)
+del chkdsk_result.txt
 
 :: Sistem Geri Yükleme noktasını kontrol etme
 echo Sistem Geri Yükleme noktaları kontrol ediliyor...
